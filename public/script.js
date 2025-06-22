@@ -87,7 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
             timersListDiv.innerHTML = '<div style="text-align:center;color:#888;">No timers added.</div>';
         } else {
             timersListDiv.innerHTML = timers.map((t, i) => `
-                <div class="timer-row${running && i === currentTimerIndex ? ' active' : ''}">
+                <div class="timer-row${running && i === currentTimerIndex ? ' active' : ''}" data-row="${i}">
                     <span class="timer-label">${t.name ? t.name : '<i>Unnamed</i>'}</span>
                     <span class="timer-duration">${t.duration}s</span>
                     <button class="timer-delete" data-index="${i}" title="Delete"${running ? ' disabled' : ''}>&#128465;</button>
@@ -101,6 +101,18 @@ document.addEventListener('DOMContentLoaded', () => {
                         renderTimersList();
                     });
                 });
+                // Scroll to last timer when adding
+                setTimeout(() => {
+                    const lastRow = timersListDiv.querySelector('.timer-row:last-child');
+                    if (lastRow) lastRow.scrollIntoView({ block: 'center', behavior: 'auto' });
+                }, 0);
+            }
+            // Auto-scroll to active timer if running
+            if (running) {
+                setTimeout(() => {
+                    const activeRow = timersListDiv.querySelector('.timer-row.active');
+                    if (activeRow) activeRow.scrollIntoView({ block: 'center', behavior: 'auto' });
+                }, 0);
             }
         }
     }
