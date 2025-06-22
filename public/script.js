@@ -90,7 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="timer-row${running && i === currentTimerIndex ? ' active' : ''}" data-row="${i}">
                     <span class="timer-label">${t.name ? t.name : '<i>Unnamed</i>'}</span>
                     <span class="timer-duration">${t.duration}s</span>
-                    <button class="timer-delete" data-index="${i}" title="Delete"${running ? ' disabled' : ''}>&#128465;</button>
+                    ${!running ? `<button class="timer-delete" data-index="${i}" title="Delete">&#128465;</button>` : ''}
                 </div>
             `).join('');
             if (!running) {
