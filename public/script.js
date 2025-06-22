@@ -27,10 +27,22 @@ document.addEventListener('DOMContentLoaded', () => {
     timerProgress.style.strokeDasharray = circumference;
     timerProgress.style.strokeDashoffset = circumference;
 
-    function updateProgress(timeRemaining, totalTime) {
-        const progress = timeRemaining / totalTime;
-        const offset = circumference * (1 - progress);
+    function updateProgress(timeRemaining, totalTime, overtime = false) {
+        let progress, offset;
+        if (!overtime) {
+            progress = timeRemaining / totalTime;
+            offset = circumference * (1 - progress);
+        } else {
+            // Overtime: keep going counterclockwise, offset increases
+            const overtimeSeconds = -timeRemaining;
+            offset = circumference * (1 + (overtimeSeconds / totalTime));
+        }
         timerProgress.style.strokeDashoffset = offset;
+        if (overtime) {
+            timerProgress.classList.add('overtime');
+        } else {
+            timerProgress.classList.remove('overtime');
+        }
     }
 
     function showResults() {
@@ -90,11 +102,19 @@ document.addEventListener('DOMContentLoaded', () => {
         clearInterval(countdownInterval);
         countdownInterval = setInterval(() => {
             if (timerDone) return;
-            timeRemaining = Math.max(0, Math.ceil((timerEndTime - Date.now()) / 1000));
-            timeLeft.textContent = timeRemaining;
-            updateProgress(timeRemaining, timerDuration);
-            if (timeRemaining <= 0) {
-                clearInterval(countdownInterval);
+            let now = Date.now();
+            timeRemaining = Math.max(0, Math.ceil((timerEndTime - now) / 1000));
+            let overtime = false;
+            if (now > timerEndTime) {
+                // Overtime
+                overtime = true;
+                // Negative timeRemaining for overtime seconds
+                timeRemaining = Math.ceil((timerEndTime - now) / 1000);
+                timeLeft.textContent = Math.abs(timeRemaining);
+                updateProgress(timeRemaining, timerDuration, true);
+            } else {
+                timeLeft.textContent = timeRemaining;
+                updateProgress(timeRemaining, timerDuration, false);
             }
         }, 100);
     }

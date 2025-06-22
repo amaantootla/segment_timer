@@ -40,6 +40,10 @@ body {
     transition: stroke-dashoffset 1s linear;
 }
 
+.timer-progress.overtime {
+    stroke: #e53935;
+}
+
 .timer-display {
     position: absolute;
     top: 50%;
