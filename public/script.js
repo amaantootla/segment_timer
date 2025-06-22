@@ -2,7 +2,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const timersInput = document.getElementById('timers-input');
     const startBtn = document.getElementById('start-btn');
     const doneBtn = document.getElementById('done-btn');
-    const stopBtn = document.getElementById('stop-btn');
     const timeLeft = document.getElementById('time-left');
     const timerProgress = document.querySelector('.timer-progress');
     const resultsDiv = document.getElementById('results');
@@ -10,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const timerUnit = document.getElementById('timer-unit');
     const addTimerBtn = document.getElementById('add-timer-btn');
     const timersListDiv = document.getElementById('timers-list');
+    const timerName = document.getElementById('timer-name');
     const circumference = 2 * Math.PI * 45;
 
     let timers = [];
@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function showResults() {
         let html = '<h3>Results</h3><ul>';
         results.forEach((r, i) => {
-            html += `<li>Timer ${i + 1}: ${r.underovertime > 0 ? 'Overtime' : 'Undertime'}: ${Math.abs(r.underovertime)}s</li>`;
+            html += `<li>${r.name ? r.name + ': ' : ''}${r.timer}s - ${r.underovertime > 0 ? 'Overtime' : 'Undertime'}: ${Math.abs(r.underovertime)}s</li>`;
         });
         html += '</ul>';
         resultsDiv.innerHTML = html;
@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (timers.length === 0) {
             timersListDiv.textContent = 'No timers added.';
         } else {
-            timersListDiv.innerHTML = 'Timers: ' + timers.map((t, i) => `<span>${t} s</span>`).join(', ');
+            timersListDiv.innerHTML = 'Timers: ' + timers.map((t, i) => `<span>${t.name ? t.name + ' (' + t.duration + 's)' : t.duration + 's'}</span>`).join(', ');
         }
     }
 
@@ -59,12 +59,14 @@ document.addEventListener('DOMContentLoaded', () => {
             addTimerBtn.disabled = false;
             timerValue.disabled = false;
             timerUnit.disabled = false;
+            timerName.disabled = false;
             timers = [];
             renderTimersList();
             showResults();
             return;
         }
-        timerDuration = timers[currentTimerIndex];
+        const timerObj = timers[currentTimerIndex];
+        timerDuration = timerObj.duration;
         let timeRemaining = timerDuration;
         timeLeft.textContent = timeRemaining;
         updateProgress(timeRemaining, timerDuration);
@@ -79,7 +81,6 @@ document.addEventListener('DOMContentLoaded', () => {
             timeLeft.textContent = timeRemaining;
             updateProgress(timeRemaining, timerDuration);
             if (timeRemaining <= 0) {
-                // Timer finished, wait for DONE
                 clearInterval(countdownInterval);
             }
         }, 100);
@@ -88,11 +89,13 @@ document.addEventListener('DOMContentLoaded', () => {
     addTimerBtn.addEventListener('click', () => {
         let value = parseInt(timerValue.value);
         let unit = timerUnit.value;
+        let name = timerName.value.trim();
         if (!isNaN(value) && value > 0) {
             if (unit === 'm') value = value * 60;
-            timers.push(value);
+            timers.push({ duration: value, name });
             renderTimersList();
             timerValue.value = '';
+            timerName.value = '';
             timerValue.focus();
         }
     });
@@ -108,6 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 addTimerBtn.disabled = true;
                 timerValue.disabled = true;
                 timerUnit.disabled = true;
+                timerName.disabled = true;
                 resultsDiv.innerHTML = '';
                 renderTimersList();
                 startNextTimer();
@@ -124,25 +128,12 @@ document.addEventListener('DOMContentLoaded', () => {
             addTimerBtn.disabled = false;
             timerValue.disabled = false;
             timerUnit.disabled = false;
+            timerName.disabled = false;
             doneBtn.style.display = 'none';
             timeLeft.textContent = '0';
             resultsDiv.innerHTML = '<b>All timers stopped.</b>';
             renderTimersList();
         }
-    });
-    stopBtn.addEventListener('click', () => {
-        clearInterval(countdownInterval);
-        timers = [];
-        currentTimerIndex = 0;
-        startBtn.disabled = false;
-        addTimerBtn.disabled = false;
-        timerValue.disabled = false;
-        timerUnit.disabled = false;
-        stopBtn.style.display = 'none';
-        doneBtn.style.display = 'none';
-        timeLeft.textContent = '0';
-        resultsDiv.innerHTML = '<b>All timers stopped.</b>';
-        renderTimersList();
     });
     doneBtn.addEventListener('click', () => {
         if (currentTimerIndex >= timers.length) return;
@@ -152,7 +143,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const scheduledEnd = timerEndTime;
         const underovertime = Math.round((now - scheduledEnd) / 1000); // + = overtime, - = undertime
         results.push({
-            timer: timers[currentTimerIndex],
+            timer: timers[currentTimerIndex].duration,
+            name: timers[currentTimerIndex].name,
             underovertime
         });
         currentTimerIndex++;
