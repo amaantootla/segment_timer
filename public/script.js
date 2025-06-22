@@ -23,6 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let running = false;
     let selectedUnit = 's';
     const unitToggle = document.getElementById('unit-toggle');
+    let showingResults = false;
 
     timerProgress.style.strokeDasharray = circumference;
     timerProgress.style.strokeDashoffset = circumference;
@@ -46,6 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function showResults() {
+        showingResults = true;
         // Hide all controls except results
         document.querySelector('.input-row').style.display = 'none';
         document.getElementById('add-timer-btn').style.display = 'none';
@@ -78,7 +80,9 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('add-timer-btn').style.display = '';
             document.getElementById('start-btn').style.display = '';
             document.getElementById('timers-list').style.display = '';
+            showingResults = false;
             renderTimersList();
+            setManageSetsBtnVisibility();
         };
     }
 
@@ -201,6 +205,47 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Hide Manage Sets button if not in edit mode
+    function updateManageSetsBtnVisibility() {
+        const manageSetsBtn = document.getElementById('manage-sets-btn');
+        if (!manageSetsBtn) return;
+        // Only show if input row, add button, and timers list are visible
+        const inputRow = document.querySelector('.input-row');
+        const addBtn = document.getElementById('add-timer-btn');
+        const timersList = document.getElementById('timers-list');
+        // If any of these are hidden, hide the button
+        if (
+            inputRow && inputRow.style.display !== 'none' &&
+            addBtn && addBtn.style.display !== 'none' &&
+            timersList && timersList.style.display !== 'none'
+        ) {
+            manageSetsBtn.style.display = '';
+        } else {
+            manageSetsBtn.style.display = 'none';
+        }
+    }
+    // Patch all UI state changes to call this
+    const origShowResults = showResults;
+    showResults = function (...args) {
+        const res = origShowResults.apply(this, args);
+        updateManageSetsBtnVisibility();
+        return res;
+    };
+    const origSetInputVisibility = setInputVisibility;
+    setInputVisibility = function (...args) {
+        const res = origSetInputVisibility.apply(this, args);
+        updateManageSetsBtnVisibility();
+        return res;
+    };
+    const origRenderTimersList = renderTimersList;
+    renderTimersList = function (...args) {
+        const res = origRenderTimersList.apply(this, args);
+        updateManageSetsBtnVisibility();
+        return res;
+    };
+    // Initial call
+    updateManageSetsBtnVisibility();
+
     startBtn.addEventListener('click', () => {
         if (!running) {
             if (timers.length > 0) {
@@ -255,4 +300,81 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     // Call setInputVisibility on load
     setInputVisibility();
+    // Modal for managing sets
+    const manageSetsBtn = document.getElementById('manage-sets-btn');
+    const setsModal = document.getElementById('sets-modal');
+    const closeSetsModal = document.getElementById('close-sets-modal');
+    const modalSetName = document.getElementById('modal-set-name');
+    const modalSaveBtn = document.getElementById('modal-save-btn');
+    const modalSavedSets = document.getElementById('modal-saved-sets');
+    function getSavedSets() {
+        return JSON.parse(localStorage.getItem('savedTimerSets') || '{}');
+    }
+    function setSavedSets(obj) {
+        localStorage.setItem('savedTimerSets', JSON.stringify(obj));
+    }
+    function renderModalSavedSets() {
+        const sets = getSavedSets();
+        if (Object.keys(sets).length === 0) {
+            modalSavedSets.innerHTML = '<div style="color:#888;text-align:center;">No saved sets</div>';
+        } else {
+            modalSavedSets.innerHTML = Object.keys(sets).map(name =>
+                `<div class="set-row">
+                    <span class="set-label">${name}</span>
+                    <span class="set-actions">
+                        <button data-action="load" data-set="${encodeURIComponent(name)}">Load</button>
+                        <button data-action="delete" data-set="${encodeURIComponent(name)}">Delete</button>
+                    </span>
+                </div>`
+            ).join('');
+            modalSavedSets.querySelectorAll('button[data-action="load"]').forEach(btn => {
+                btn.onclick = () => {
+                    const sets = getSavedSets();
+                    const name = decodeURIComponent(btn.getAttribute('data-set'));
+                    if (sets[name]) {
+                        timers = sets[name];
+                        renderTimersList();
+                        setsModal.style.display = 'none';
+                    }
+                };
+            });
+            modalSavedSets.querySelectorAll('button[data-action="delete"]').forEach(btn => {
+                btn.onclick = () => {
+                    const sets = getSavedSets();
+                    const name = decodeURIComponent(btn.getAttribute('data-set'));
+                    if (sets[name]) {
+                        delete sets[name];
+                        setSavedSets(sets);
+                        renderModalSavedSets();
+                    }
+                };
+            });
+        }
+    }
+    if (manageSetsBtn) {
+        manageSetsBtn.onclick = () => {
+            console.log('Manage Sets button clicked'); // DEBUG
+            setsModal.style.display = 'flex';
+            renderModalSavedSets();
+        };
+    }
+    if (closeSetsModal) {
+        closeSetsModal.onclick = () => {
+            setsModal.style.display = 'none';
+        };
+    }
+    if (modalSaveBtn) {
+        modalSaveBtn.onclick = () => {
+            const name = (modalSetName && modalSetName.value.trim()) || 'Untitled';
+            if (timers.length > 0 && name) {
+                const sets = getSavedSets();
+                sets[name] = timers;
+                setSavedSets(sets);
+                renderModalSavedSets();
+                modalSaveBtn.textContent = 'Saved!';
+                setTimeout(() => { modalSaveBtn.textContent = 'Save Current'; }, 1200);
+            }
+        };
+    }
+    renderModalSavedSets();
 });

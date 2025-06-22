@@ -30,6 +30,18 @@
             </div>
             <button id="add-timer-btn">+</button>
             <div id="timers-list"></div>
+            <div class="timer-save-load-row">
+                <button id="manage-sets-btn" class="save-load-btn">Manage Sets</button>
+            </div>
+            <div id="sets-modal" class="sets-modal" style="display:none;">
+                <div class="sets-modal-content">
+                    <h2>Manage Timer Sets</h2>
+                    <input type="text" id="modal-set-name" placeholder="Set name" class="save-set-name">
+                    <button id="modal-save-btn" class="save-load-btn">Save Current</button>
+                    <div id="modal-saved-sets"></div>
+                    <button id="close-sets-modal" class="save-load-btn" style="margin-top:18px;">Close</button>
+                </div>
+            </div>
             <button id="start-btn">Start</button>
             <button id="done-btn" style="display:none;">DONE</button>
         </div>
