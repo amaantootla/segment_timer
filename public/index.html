@@ -20,9 +20,17 @@
             </div>
         </div>
         <div class="controls">
-            <input type="number" id="time-input" placeholder="Enter seconds" min="1">
+            <input type="number" id="timer-value" placeholder="Enter time" min="1">
+            <select id="timer-unit">
+                <option value="s">seconds</option>
+                <option value="m">minutes</option>
+            </select>
+            <button id="add-timer-btn">+</button>
+            <div id="timers-list" style="margin: 10px 0;"></div>
             <button id="start-btn">Start</button>
+            <button id="done-btn" style="display:none;">DONE</button>
         </div>
+        <div id="results" style="margin-top:20px;"></div>
     </div>
     <script src="script.js"></script>
 </body>

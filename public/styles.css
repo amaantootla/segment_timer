@@ -73,3 +73,12 @@ body {
 #start-btn:hover {
     background-color: #45a049;
 }
+
+#start-btn.stop-btn {
+    background-color: #e53935;
+    color: white;
+}
+
+#start-btn.stop-btn:hover {
+    background-color: #b71c1c;
+}
