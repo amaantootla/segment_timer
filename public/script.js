@@ -21,6 +21,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let timerDone = false;
     let results = [];
     let running = false;
+    let selectedUnit = 's';
+    const unitToggle = document.getElementById('unit-toggle');
 
     timerProgress.style.strokeDasharray = circumference;
     timerProgress.style.strokeDashoffset = circumference;
@@ -48,6 +50,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    if (unitToggle) {
+        unitToggle.addEventListener('click', (e) => {
+            if (e.target.classList.contains('unit-btn')) {
+                document.querySelectorAll('.unit-btn').forEach(btn => btn.classList.remove('active'));
+                e.target.classList.add('active');
+                selectedUnit = e.target.getAttribute('data-unit');
+            }
+        });
+    }
+
     function startNextTimer() {
         if (currentTimerIndex >= timers.length) {
             timeLeft.textContent = '0';
@@ -58,7 +70,8 @@ document.addEventListener('DOMContentLoaded', () => {
             startBtn.disabled = false;
             addTimerBtn.disabled = false;
             timerValue.disabled = false;
-            timerUnit.disabled = false;
+            // Enable unit toggle buttons
+            document.querySelectorAll('.unit-btn').forEach(btn => btn.disabled = false);
             timerName.disabled = false;
             timers = [];
             renderTimersList();
@@ -88,8 +101,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     addTimerBtn.addEventListener('click', () => {
         let value = parseInt(timerValue.value);
-        let unit = timerUnit.value;
         let name = timerName.value.trim();
+        let unit = selectedUnit;
         if (!isNaN(value) && value > 0) {
             if (unit === 'm') value = value * 60;
             timers.push({ duration: value, name });
@@ -110,7 +123,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 startBtn.classList.add('stop-btn');
                 addTimerBtn.disabled = true;
                 timerValue.disabled = true;
-                timerUnit.disabled = true;
+                // Disable unit toggle buttons
+                document.querySelectorAll('.unit-btn').forEach(btn => btn.disabled = true);
                 timerName.disabled = true;
                 resultsDiv.innerHTML = '';
                 renderTimersList();
@@ -127,7 +141,8 @@ document.addEventListener('DOMContentLoaded', () => {
             startBtn.disabled = false;
             addTimerBtn.disabled = false;
             timerValue.disabled = false;
-            timerUnit.disabled = false;
+            // Enable unit toggle buttons
+            document.querySelectorAll('.unit-btn').forEach(btn => btn.disabled = false);
             timerName.disabled = false;
             doneBtn.style.display = 'none';
             timeLeft.textContent = '0';

@@ -97,3 +97,35 @@ body {
 #done-btn:hover {
     background-color: #388e3c;
 }
+
+.unit-toggle {
+    display: inline-block;
+    vertical-align: middle;
+    border: 1px solid #ccc;
+    border-radius: 2px 2px 0 0;
+    overflow: hidden;
+    margin: 0 10px 0 10px;
+}
+
+.unit-btn {
+    background: #fff;
+    border: none;
+    outline: none;
+    padding: 10px 24px;
+    font-size: 18px;
+    color: #333;
+    cursor: pointer;
+    border-right: 1px solid #ccc;
+    transition: background 0.2s;
+}
+
+.unit-btn:last-child {
+    border-right: none;
+}
+
+.unit-btn.active {
+    background: #e0e0e0;
+    border-bottom: 2px solid #4285f4;
+    color: #222;
+    font-weight: bold;
+}
