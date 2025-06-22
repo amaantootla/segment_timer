@@ -46,19 +46,62 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function showResults() {
-        let html = '<h3>Results</h3><ul>';
+        // Hide all controls except results
+        document.querySelector('.input-row').style.display = 'none';
+        document.getElementById('add-timer-btn').style.display = 'none';
+        document.getElementById('start-btn').style.display = 'none';
+        document.getElementById('timers-list').style.display = 'none';
+        // Calculate total time including overtime/undertime
+        const totalSeconds = results.reduce((sum, r) => sum + (parseInt(r.timer) || 0) + (parseInt(r.underovertime) || 0), 0);
+        const min = Math.floor(Math.abs(totalSeconds) / 60);
+        const sec = Math.abs(totalSeconds) % 60;
+        let sign = totalSeconds < 0 ? '-' : '';
+        document.getElementById('time-left').textContent = `${sign}${min > 0 ? min + 'm ' : ''}${sec}s`;
+        let html = '<h3>Results</h3><div id="results-list">';
         results.forEach((r, i) => {
-            html += `<li>${r.name ? r.name + ': ' : ''}${r.timer}s - ${r.underovertime > 0 ? 'Overtime' : 'Undertime'}: ${Math.abs(r.underovertime)}s</li>`;
+            html += `<div class="result-row">
+                <span class="result-label">${r.name ? r.name : '<i>Unnamed</i>'}</span>
+                <span class="result-duration">${r.timer}s</span>
+                <span class="result-status ${r.underovertime > 0 ? 'overtime' : 'undertime'}">
+                    ${r.underovertime > 0 ? '+' : ''}${r.underovertime}s
+                </span>
+            </div>`;
         });
-        html += '</ul>';
+        html += '</div>';
+        html += '<button id="results-done-btn" class="results-done-btn">Done</button>';
         resultsDiv.innerHTML = html;
+        // Add event listener for Done button
+        document.getElementById('results-done-btn').onclick = () => {
+            resultsDiv.innerHTML = '';
+            document.getElementById('time-left').textContent = '0';
+            document.querySelector('.input-row').style.display = '';
+            document.getElementById('add-timer-btn').style.display = '';
+            document.getElementById('start-btn').style.display = '';
+            document.getElementById('timers-list').style.display = '';
+            renderTimersList();
+        };
     }
 
     function renderTimersList() {
         if (timers.length === 0) {
-            timersListDiv.textContent = 'No timers added.';
+            timersListDiv.innerHTML = '<div style="text-align:center;color:#888;">No timers added.</div>';
         } else {
-            timersListDiv.innerHTML = 'Timers: ' + timers.map((t, i) => `<span>${t.name ? t.name + ' (' + t.duration + 's)' : t.duration + 's'}</span>`).join(', ');
+            timersListDiv.innerHTML = timers.map((t, i) => `
+                <div class="timer-row${running && i === currentTimerIndex ? ' active' : ''}">
+                    <span class="timer-label">${t.name ? t.name : '<i>Unnamed</i>'}</span>
+                    <span class="timer-duration">${t.duration}s</span>
+                    <button class="timer-delete" data-index="${i}" title="Delete"${running ? ' disabled' : ''}>&#128465;</button>
+                </div>
+            `).join('');
+            if (!running) {
+                timersListDiv.querySelectorAll('.timer-delete').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const idx = parseInt(btn.getAttribute('data-index'));
+                        timers.splice(idx, 1);
+                        renderTimersList();
+                    });
+                });
+            }
         }
     }
 
@@ -73,10 +116,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function startNextTimer() {
+        renderTimersList(); // Always update list and highlight
         if (currentTimerIndex >= timers.length) {
             timeLeft.textContent = '0';
             doneBtn.style.display = 'none';
             running = false;
+            setInputVisibility();
             startBtn.textContent = 'Start';
             startBtn.classList.remove('stop-btn');
             startBtn.disabled = false;
@@ -106,9 +151,7 @@ document.addEventListener('DOMContentLoaded', () => {
             timeRemaining = Math.max(0, Math.ceil((timerEndTime - now) / 1000));
             let overtime = false;
             if (now > timerEndTime) {
-                // Overtime
                 overtime = true;
-                // Negative timeRemaining for overtime seconds
                 timeRemaining = Math.ceil((timerEndTime - now) / 1000);
                 timeLeft.textContent = Math.abs(timeRemaining);
                 updateProgress(timeRemaining, timerDuration, true);
@@ -116,6 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 timeLeft.textContent = timeRemaining;
                 updateProgress(timeRemaining, timerDuration, false);
             }
+            renderTimersList(); // Update highlight on every tick
         }, 100);
     }
 
@@ -133,17 +177,29 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    function setInputVisibility() {
+        const inputRow = document.querySelector('.input-row');
+        const addBtn = document.getElementById('add-timer-btn');
+        if (running) {
+            if (inputRow) inputRow.style.display = 'none';
+            if (addBtn) addBtn.style.display = 'none';
+        } else {
+            if (inputRow) inputRow.style.display = '';
+            if (addBtn) addBtn.style.display = '';
+        }
+    }
+
     startBtn.addEventListener('click', () => {
         if (!running) {
             if (timers.length > 0) {
                 currentTimerIndex = 0;
                 results = [];
                 running = true;
+                setInputVisibility();
                 startBtn.textContent = 'STOP';
                 startBtn.classList.add('stop-btn');
                 addTimerBtn.disabled = true;
                 timerValue.disabled = true;
-                // Disable unit toggle buttons
                 document.querySelectorAll('.unit-btn').forEach(btn => btn.disabled = true);
                 timerName.disabled = true;
                 resultsDiv.innerHTML = '';
@@ -156,12 +212,12 @@ document.addEventListener('DOMContentLoaded', () => {
             timers = [];
             currentTimerIndex = 0;
             running = false;
+            setInputVisibility();
             startBtn.textContent = 'Start';
             startBtn.classList.remove('stop-btn');
             startBtn.disabled = false;
             addTimerBtn.disabled = false;
             timerValue.disabled = false;
-            // Enable unit toggle buttons
             document.querySelectorAll('.unit-btn').forEach(btn => btn.disabled = false);
             timerName.disabled = false;
             doneBtn.style.display = 'none';
@@ -185,4 +241,6 @@ document.addEventListener('DOMContentLoaded', () => {
         currentTimerIndex++;
         startNextTimer();
     });
+    // Call setInputVisibility on load
+    setInputVisibility();
 });
