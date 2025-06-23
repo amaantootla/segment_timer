@@ -2,6 +2,30 @@
 
 A modern, user-friendly webapp timer built with Node.js and JavaScript. Supports multiple sequential timers, each with a name, advanced UI/UX, and timer set management.
 
+---
+
+## 🕒 For Morning Routines & Maladaptive Daydreaming
+
+**Do you lose track of time during your morning routine?**
+**Do you struggle with maladaptive daydreaming and want to stay on task?**
+
+Segment Timer is designed to help you:
+- Stay focused and on schedule during routine tasks
+- Break your morning into manageable, timed segments
+- Use visual and audio cues to gently bring your attention back if you drift
+- Build better habits and reduce time lost to daydreaming
+
+### How to Use for Routines & Focus
+1. **List your morning tasks** (e.g., shower, breakfast, getting dressed).
+2. **Add each as a timer segment** with a realistic time limit.
+3. **Start the timer sequence** and follow along.
+4. **When the alert sounds or appears, move to the next task.**
+5. If you catch yourself daydreaming, use the timer's cues to gently refocus.
+
+**Tip:** Use every day for best results. Over time, you'll build awareness and structure into your mornings.
+
+---
+
 ## Features
 - Circular countdown timer with SVG animation
 - Add multiple sequential timers, each with a name
